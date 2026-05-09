@@ -1,0 +1,55 @@
+name: Monitor Hacker News
+
+on:
+  schedule:
+    - cron: "0 */4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Download last run timestamp
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: last-run-timestamp
+          path: last_run_artifact
+
+      - name: Restore last run timestamp
+        run: |
+          if [ -f last_run_artifact/last_run.txt ]; then
+            cp last_run_artifact/last_run.txt last_run.txt
+            echo "Restored last run timestamp: $(cat last_run.txt)"
+          else
+            echo "No previous run timestamp found. First run."
+          fi
+
+      - name: Run monitor
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python -m src.main
+
+      - name: Save last run timestamp
+        uses: actions/upload-artifact@v4
+        if always()
+        with:
+          name: last-run-timestamp
+          path: last_run.txt
+          retention-days: 90
+          overwrite: true
