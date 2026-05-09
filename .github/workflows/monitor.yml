@@ -47,7 +47,7 @@ jobs:
 
       - name: Save last run timestamp
         uses: actions/upload-artifact@v4
-        if always()
+        if: always()
         with:
           name: last-run-timestamp
           path: last_run.txt
