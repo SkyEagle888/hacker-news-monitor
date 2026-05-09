@@ -20,6 +20,7 @@
 | `keywords.csv` | Configurable keyword list (28 keywords) | 2026-05-09 | ✅ |
 | `requirements.txt` | Python dependencies (feedparser, httpx, python-dateutil) | 2026-05-09 | ✅ |
 | `.github/workflows/monitor.yml` | GitHub Actions workflow (cron + workflow_dispatch) | 2026-05-09 | ✅ |
+| `.gitignore` | Excludes `__pycache__/`, `*.pyc`, `last_run.txt`, `last_run_artifact/` | 2026-05-09 | ✅ |
 
 ## File Responsibilities
 
@@ -32,7 +33,8 @@
 
 ## Validation Status
 
-- **Phase**: Implementation complete (Phases 1–5); Phase 6 (live validation) pending
+- **Phase**: Phase 6 in progress — `workflow_dispatch` validated ✅; cron/dedup pending natural validation
 - **Compilation**: `py_compile` passed for all `.py` files ✅
-- **Blocking Issues**: None — requires `DISCORD_WEBHOOK_URL` secret and `workflow_dispatch` for live test
-- **Scope/Plan Alignment**: ✅ All Phase 1–5 tasks checked; Phase 6 requires live environment
+- **Live Test**: `workflow_dispatch` run succeeded ✅ (commit `312939a`)
+- **Blocking Issues**: None
+- **Scope/Plan Alignment**: ✅ Phase 1–5 complete; Phase 6 task 1/5 checked

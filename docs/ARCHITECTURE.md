@@ -28,7 +28,8 @@
 
 - **Language**: Python 3.11+
 - **RSS Parsing**: `feedparser`
-- **HTTP Client**: `httpx` (async) or `urllib` (stdlib fallback)
+- **HTTP Client**: `httpx` (sync, with retry logic)
+- **Date Parsing**: `python-dateutil` (fallback for non-standard RSS date formats)
 - **Keyword Storage**: CSV file (built-in `csv` module)
 - **State Persistence**: GitHub Actions artifact (last run timestamp)
 - **Notification**: Discord Webhook via HTTP POST
@@ -38,7 +39,8 @@
 - **CI/CD**: GitHub Actions workflow (`.github/workflows/monitor.yml`)
 - **Secrets**: `DISCORD_WEBHOOK_URL` stored as GitHub Actions secret
 - **Scheduling**: Cron `0 */4 * * *` (every 4 hours)
-- **Artifacts**: Persist last run timestamp as workflow artifact for deduplication
+- **Artifacts**: Persist `last_run.txt` as workflow artifact (`last-run-timestamp`) for deduplication; 90-day retention
+- **Ignored Paths**: `__pycache__/`, `*.pyc`, `last_run.txt`, `last_run_artifact/` (via `.gitignore`)
 
 ## Data Model & Schema
 

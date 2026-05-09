@@ -2,6 +2,25 @@
 
 ## Session Summaries
 
+### 2026-05-09 | [Docs Sync — Post-Live Validation]
+
+- **Routed To**:
+  - `docs/CONTEXT-MAP.md` (added `.gitignore` mapping; updated validation status)
+  - `docs/ARCHITECTURE.md` (added `python-dateutil` dep; added `.gitignore` + artifact details)
+  - `docs/CHANGE-LOG.md` (this entry)
+- **Validation**: `workflow_dispatch` confirmed working ✅
+- **Risk**: Low
+
+### 2026-05-09 | [Bug Fixes & Live Validation]
+
+- **Files**:
+  - `.github/workflows/monitor.yml` (fixed — missing colon on `if: always()` at L50)
+  - `src/main.py` (fixed — absolute imports `from src.xxx` for `python -m src.main`)
+  - `.gitignore` (added — `__pycache__/`, `*.pyc`, `last_run.txt`, `last_run_artifact/`)
+  - `docs/PLAN.md` (updated — Phase 6 first task marked [x])
+- **Validation**: `workflow_dispatch` run succeeded ✅
+- **Risk**: Low | **Rollback**: Revert commits `98e7292`, `312939a`
+
 ### 2026-05-09 | [Full Implementation — Phases 1–5]
 
 - **Files**:
