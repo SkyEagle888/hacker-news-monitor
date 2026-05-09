@@ -4,9 +4,9 @@ import logging
 import os
 import sys
 
-from rss_client import fetch_feed
-from keyword_filter import load_keywords, filter_posts
-from notifier import send_notification
+from src.rss_client import fetch_feed
+from src.keyword_filter import load_keywords, filter_posts
+from src.notifier import send_notification
 
 logging.basicConfig(
     level=logging.INFO,
