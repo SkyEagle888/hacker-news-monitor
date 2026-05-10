@@ -49,12 +49,15 @@ def main() -> None:
     keywords = load_keywords()
     logger.info("Loaded %d keyword(s)", len(keywords))
 
+    newest_published = max(p["published"] for p in posts)
+
     matched = filter_posts(posts, keywords)
     logger.info("Matched %d post(s)", len(matched))
 
     if not matched:
         logger.info("No matching posts found. Exiting.")
-        save_last_run_timestamp(posts[0]["published"])
+        save_last_run_timestamp(newest_published)
+        logger.info("Updated last run timestamp to: %s", newest_published)
         return
 
     success_count = 0
@@ -66,7 +69,6 @@ def main() -> None:
         "Sent %d/%d notification(s)", success_count, len(matched)
     )
 
-    newest_published = max(p["published"] for p in matched)
     save_last_run_timestamp(newest_published)
     logger.info("Updated last run timestamp to: %s", newest_published)
 

@@ -36,7 +36,7 @@
 
 ## Phase 6: Validation & Hardening
 
-- [ ] Test full workflow via `workflow_dispatch` trigger
+- [x] Test full workflow via `workflow_dispatch` trigger
 - [ ] Verify Discord notification format and content
 - [ ] Verify deduplication works across consecutive runs
 - [ ] Confirm cron schedule fires correctly

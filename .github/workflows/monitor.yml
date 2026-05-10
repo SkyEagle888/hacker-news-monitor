@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   monitor:
@@ -24,32 +24,18 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Download last run timestamp
-        uses: actions/download-artifact@v4
-        continue-on-error: true
-        with:
-          name: last-run-timestamp
-          path: last_run_artifact
-
-      - name: Restore last run timestamp
-        run: |
-          if [ -f last_run_artifact/last_run.txt ]; then
-            cp last_run_artifact/last_run.txt last_run.txt
-            echo "Restored last run timestamp: $(cat last_run.txt)"
-          else
-            echo "No previous run timestamp found. First run."
-          fi
-
       - name: Run monitor
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python -m src.main
 
-      - name: Save last run timestamp
-        uses: actions/upload-artifact@v4
+      - name: Commit and push last run timestamp
         if: always()
-        with:
-          name: last-run-timestamp
-          path: last_run.txt
-          retention-days: 90
-          overwrite: true
+        run: |
+          if [ -f last_run.txt ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add last_run.txt
+            git diff --cached --quiet || git commit -m "chore: update last run timestamp"
+            git push
+          fi
