@@ -2,6 +2,16 @@
 
 ## Session Summaries
 
+### 2026-06-06 | [Feature — Severity-Based Embed Colors]
+
+- **Files**:
+  - `src/notifier.py` (updated — added 5-tier keyword→color mapping; embed `color` and `footer` now derived from highest-priority matched tier)
+  - `docs/CONTEXT-MAP.md` (updated — notifier responsibility refreshed)
+  - `docs/CHANGE-LOG.md` (this entry)
+- **Tiers**: Critical (red) > High (orange) > Stack (yellow) > Vendor (blue) > Internal (purple) > General (gray fallback)
+- **Validation**: `py_compile src/notifier.py` ✅ | Tier resolver smoke-tested across 6 keyword combos ✅
+- **Risk**: Low | **Rollback**: Revert `src/notifier.py` to single-color embed
+
 ### 2026-05-09 | [Docs Sync — Post-Live Validation]
 
 - **Routed To**:
