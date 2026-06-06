@@ -10,6 +10,8 @@ logger = logging.getLogger(__name__)
 
 DISCORD_WEBHOOK_MAX_RETRIES = 3
 DISCORD_WEBHOOK_TIMEOUT = 10
+DISCORD_DESCRIPTION_MAX_WORDS = 60
+TRUNCATION_ELLIPSIS = "…"
 
 TIER_CRITICAL = "Critical"
 TIER_HIGH = "High"
@@ -65,6 +67,15 @@ KEYWORD_TIERS: dict[str, str] = {
 }
 
 
+def _truncate_words(text: str, max_words: int) -> str:
+    if not text:
+        return ""
+    words = text.split()
+    if len(words) <= max_words:
+        return text
+    return " ".join(words[:max_words]) + TRUNCATION_ELLIPSIS
+
+
 def _resolve_tier(matched_keywords: list[str]) -> str:
     tiers = {
         KEYWORD_TIERS[k.lower()]
@@ -86,7 +97,9 @@ def _build_embed(post: dict[str, Any]) -> dict[str, Any]:
     embed: dict[str, Any] = {
         "title": post.get("title", "Untitled"),
         "url": post.get("link", ""),
-        "description": post.get("summary", "")[:500],
+        "description": _truncate_words(
+            post.get("summary", ""), DISCORD_DESCRIPTION_MAX_WORDS
+        ),
         "color": color,
         "fields": [
             {
