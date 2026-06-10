@@ -68,6 +68,9 @@ breach
 
 Go to **Actions → Monitor Hacker News → Run workflow** to trigger an on-demand run.
 
+- **Normal run** (default): fetches the RSS feed, filters against `keywords.csv`, and sends embeds for new matches (deduplicated against the last successful run).
+- **Send a test notification** (check the `send_test` input): sends a single synthetic test embed to every configured Discord channel and exits. No RSS fetch, no timestamp update. Useful for verifying webhook reachability right after configuring `DISCORD_WEBHOOK_URLS`.
+
 ## Default Keywords
 
 | Category | Keywords |

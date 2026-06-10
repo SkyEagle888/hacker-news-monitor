@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: "0 */4 * * *"
   workflow_dispatch:
+    inputs:
+      send_test:
+        description: "Send a test notification to all configured Discord webhooks and exit (no RSS fetch)"
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: write
@@ -28,6 +34,7 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           DISCORD_WEBHOOK_URLS: ${{ secrets.DISCORD_WEBHOOK_URLS }}
+          SEND_TEST: ${{ inputs.send_test }}
         run: python -m src.main
 
       - name: Commit and push last run timestamp

@@ -2,6 +2,22 @@
 
 ## Session Summaries
 
+### 2026-06-10 | [Feature — Manual Test Notification]
+
+- **Files**:
+  - `.github/workflows/monitor.yml` (updated — `workflow_dispatch` now exposes `send_test` boolean input, default `false`; passed to run step as `SEND_TEST` env)
+  - `src/main.py` (updated — new `_send_test_notification(webhook_urls)` helper; `main()` short-circuits when `SEND_TEST` is truthy (`true|1|yes`) to fan out a synthetic "Test Notification" embed to all configured channels and exit before RSS fetch)
+  - `README.md` (updated — `Run Manually` section documents the new `send_test` input)
+  - `docs/CONTEXT-MAP.md` (updated — main row reflects `SEND_TEST` short-circuit)
+  - `docs/PLAN.md` (updated — Phase 6 test-notification task added and checked)
+  - `docs/CHANGE-LOG.md` (this entry)
+- **Behavior**:
+  - Test embed uses the real `_build_embed()` path (same color/footer/fields as a real post); tier resolves to `General` (gray) since `"(test)"` is not a tiered keyword.
+  - Per-channel retry/failure isolation inherited from `send_notification`; any channel failure exits 1.
+  - No RSS fetch, no `last_run.txt` write — purely a webhook reachability check.
+- **Validation**: `py_compile src/main.py` ✅; smoke test covers truthy variants + exit-on-partial-failure ✅
+- **Risk**: Low | **Rollback**: revert `monitor.yml` and `src/main.py`; cron and back-compat behavior unchanged.
+
 ### 2026-06-10 | [Feature — Multi-Channel Discord Delivery]
 
 - **Scope Drift**: SCOPE.md [05] updated from single-channel to one-or-more channels via `DISCORD_WEBHOOK_URLS` (JSON array) with `DISCORD_WEBHOOK_URL` legacy fallback.

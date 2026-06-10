@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import sys
+from datetime import datetime, timezone
 
 from src.rss_client import fetch_feed
 from src.keyword_filter import load_keywords, filter_posts
@@ -16,6 +17,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 LAST_RUN_FILE = os.path.join(os.path.dirname(__file__), "..", "last_run.txt")
+SEND_TEST_ENV = "SEND_TEST"
+TEST_TRUTHY = {"true", "1", "yes"}
 
 
 def load_last_run_timestamp() -> str:
@@ -28,6 +31,27 @@ def load_last_run_timestamp() -> str:
 def save_last_run_timestamp(timestamp: str) -> None:
     with open(LAST_RUN_FILE, "w", encoding="utf-8") as f:
         f.write(timestamp)
+
+
+def _send_test_notification(webhook_urls: list[str]) -> None:
+    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    test_post = {
+        "title": "Test Notification",
+        "link": "https://github.com/SkyEagle888/hacker-news-monitor",
+        "summary": (
+            "This is a test message from the Hacker News Monitor "
+            "GitHub Action. No RSS post was matched. Confirms "
+            f"{len(webhook_urls)} Discord channel(s) are reachable."
+        ),
+        "published": timestamp,
+        "matched_keywords": ["(test)"],
+    }
+    ok, total = send_notification(webhook_urls, test_post)
+    logger.info(
+        "Test notification sent: %d/%d channel(s) succeeded", ok, total
+    )
+    if ok < total:
+        sys.exit(1)
 
 
 def _load_webhook_urls() -> list[str]:
@@ -68,6 +92,11 @@ def _load_webhook_urls() -> list[str]:
 
 def main() -> None:
     webhook_urls = _load_webhook_urls()
+
+    if os.environ.get(SEND_TEST_ENV, "").strip().lower() in TEST_TRUTHY:
+        logger.info("SEND_TEST enabled — sending test notification")
+        _send_test_notification(webhook_urls)
+        return
 
     last_run = load_last_run_timestamp()
     logger.info("Last run timestamp: %s", last_run or "(none)")

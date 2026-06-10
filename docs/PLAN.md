@@ -41,4 +41,5 @@
 - [ ] Verify deduplication works across consecutive runs
 - [ ] Confirm cron schedule fires correctly
 - [x] Support multiple Discord webhooks via `DISCORD_WEBHOOK_URLS` JSON array (back-compat with `DISCORD_WEBHOOK_URL`) → **[05]**
+- [x] Add `send_test` workflow_dispatch input → sends a synthetic test embed to all configured channels and exits
 - [ ] Final `docs/` review — mark all PLAN tasks as `[x]`
