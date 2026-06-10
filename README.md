@@ -7,7 +7,7 @@ Automated monitoring tool that tracks [The Hacker News RSS feed](https://feeds.f
 1. **GitHub Actions** triggers every 4 hours (cron) or on-demand (`workflow_dispatch`)
 2. **Python script** fetches and parses the RSS feed
 3. **Keyword filter** matches posts by title and summary against a configurable CSV list
-4. **Discord notifier** sends an embed per matched post to a webhook channel
+4. **Discord notifier** sends an embed per matched post to one or more webhook channels (fan-out; per-channel retry)
 5. **Deduplication** ensures only posts published since the last successful run are processed
 
 ## Project Structure
@@ -32,12 +32,25 @@ git clone https://github.com/<your-username>/hacker-news-monitor.git
 cd hacker-news-monitor
 ```
 
-### 2. Add Discord Webhook Secret
+### 2. Add Discord Webhook Secret(s)
 
-Go to **Settings → Secrets and variables → Actions → New repository secret**:
+Go to **Settings → Secrets and variables → Actions → New repository secret**.
+
+**Preferred — fan out to multiple channels:**
+
+- **Name**: `DISCORD_WEBHOOK_URLS`
+- **Value**: JSON array of Discord channel webhook URLs, e.g.
+
+  ```json
+  ["https://discord.com/api/webhooks/AAA/token1", "https://discord.com/api/webhooks/BBB/token2"]
+  ```
+
+  The same matched post is delivered to every URL. Per-channel failures are isolated; duplicate URLs are deduped automatically.
+
+**Legacy fallback — single channel:**
 
 - **Name**: `DISCORD_WEBHOOK_URL`
-- **Value**: Your Discord channel webhook URL
+- **Value**: A single Discord channel webhook URL. Used only when `DISCORD_WEBHOOK_URLS` is unset.
 
 ### 3. Customize Keywords (Optional)
 

@@ -5,7 +5,7 @@
 - **Platform**: GitHub Actions (GitHub-hosted `ubuntu-latest` runner)
 - **Trigger**: Cron schedule (`0 */4 * * *`) + `workflow_dispatch`
 - **Runtime**: Python 3.11+ (pre-installed on runner)
-- **Data Flow**: RSS Feed → Parser → Keyword Filter → Discord Webhook
+- **Data Flow**: RSS Feed → Parser → Keyword Filter → Discord Webhooks (1..N channels)
 
 ```
 [The Hacker News RSS]
@@ -18,10 +18,11 @@
    ├─ fetch RSS feed
    ├─ filter by keywords (CSV)
    ├─ deduplicate (last run timestamp)
-   └─ notify via Discord webhook
+   └─ notify via Discord webhooks (per-URL retry)
         │
-        ▼
-  [Discord Channel]
+        ├──────────────┬──────────────┐
+        ▼              ▼              ▼
+[Discord Channel 1] [Channel 2] ... [Channel N]
 ```
 
 ## Tech Stack & Dependencies
@@ -37,7 +38,9 @@
 ## Deployment & Infra
 
 - **CI/CD**: GitHub Actions workflow (`.github/workflows/monitor.yml`)
-- **Secrets**: `DISCORD_WEBHOOK_URL` stored as GitHub Actions secret
+- **Secrets**:
+  - `DISCORD_WEBHOOK_URLS` (preferred) — JSON array of Discord webhook URLs; same payload fanned out to every channel.
+  - `DISCORD_WEBHOOK_URL` (legacy fallback) — single webhook URL; used only when `DISCORD_WEBHOOK_URLS` is unset.
 - **Scheduling**: Cron `0 */4 * * *` (every 4 hours)
 - **Artifacts**: Persist `last_run.txt` as workflow artifact (`last-run-timestamp`) for deduplication; 90-day retention
 - **Ignored Paths**: `__pycache__/`, `*.pyc`, `last_run.txt`, `last_run_artifact/` (via `.gitignore`)

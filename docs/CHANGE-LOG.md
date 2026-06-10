@@ -2,6 +2,23 @@
 
 ## Session Summaries
 
+### 2026-06-10 | [Feature — Multi-Channel Discord Delivery]
+
+- **Scope Drift**: SCOPE.md [05] updated from single-channel to one-or-more channels via `DISCORD_WEBHOOK_URLS` (JSON array) with `DISCORD_WEBHOOK_URL` legacy fallback.
+- **Files**:
+  - `src/notifier.py` (refactored — extracted `_post_to_webhook(url, post) -> bool`; `send_notification(urls: list[str], post) -> tuple[int, int]` fans out with per-URL 3-retry loop; URLs deduped preserving order)
+  - `src/main.py` (updated — new `_load_webhook_urls()` helper: parses JSON, validates http(s) array, falls back to `DISCORD_WEBHOOK_URL` when URLS unset, dedupes, exits 1 on malformed/missing; final log line reports `(successes, total_attempts, channel_count)`)
+  - `.github/workflows/monitor.yml` (updated — exposes both `DISCORD_WEBHOOK_URL` and `DISCORD_WEBHOOK_URLS` env vars to the `Run monitor` step)
+  - `docs/SCOPE.md` (updated — [05] now specifies one-or-more channels and new secret precedence; scope drift flagged here)
+  - `docs/ARCHITECTURE.md` (updated — topology diagram shows 1..N channels; secrets section lists both)
+  - `docs/CONTEXT-MAP.md` (updated — notifier + main rows reflect multi-webhook contract)
+  - `docs/PLAN.md` (updated — Phase 6 multi-webhook task added and marked complete)
+  - `README.md` (updated — `How It Works` and `Setup` reflect new secret)
+- **Failure isolation**: per-URL retry loop; one channel's 5xx/timeout does not block siblings.
+- **Dedupe**: `list(dict.fromkeys(urls))` preserves order; prevents accidental duplicate embeds.
+- **Validation**: `py_compile src/main.py src/notifier.py` ✅; `_load_webhook_urls` branch smoke-tests pass (JSON happy path, fallback to legacy, malformed JSON exits 1, non-array exits 1, non-http URL exits 1, dedupe works) ✅
+- **Risk**: Low | **Rollback**: revert `src/notifier.py`, `src/main.py`, `.github/workflows/monitor.yml`, and doc lines; behavior reverts to single-webhook.
+
 ### 2026-06-06 | [Feature — Severity-Based Embed Colors]
 
 - **Files**:

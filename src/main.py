@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 import os
 import sys
@@ -29,11 +30,44 @@ def save_last_run_timestamp(timestamp: str) -> None:
         f.write(timestamp)
 
 
+def _load_webhook_urls() -> list[str]:
+    urls_json = os.environ.get("DISCORD_WEBHOOK_URLS")
+    if urls_json:
+        try:
+            parsed = json.loads(urls_json)
+        except json.JSONDecodeError:
+            logger.error("DISCORD_WEBHOOK_URLS is not valid JSON")
+            sys.exit(1)
+        if not isinstance(parsed, list) or not all(
+            isinstance(u, str)
+            and u.strip()
+            and u.startswith(("http://", "https://"))
+            for u in parsed
+        ):
+            logger.error(
+                "DISCORD_WEBHOOK_URLS must be a JSON array of http(s) URLs"
+            )
+            sys.exit(1)
+        deduped = list(dict.fromkeys(u.strip() for u in parsed))
+        logger.info(
+            "Using DISCORD_WEBHOOK_URLS (%d channel(s))", len(deduped)
+        )
+        return deduped
+
+    legacy = os.environ.get("DISCORD_WEBHOOK_URL")
+    if legacy and legacy.strip():
+        logger.info("Falling back to DISCORD_WEBHOOK_URL (1 channel)")
+        return [legacy.strip()]
+
+    logger.error(
+        "DISCORD_WEBHOOK_URLS or DISCORD_WEBHOOK_URL environment variable "
+        "is not set"
+    )
+    sys.exit(1)
+
+
 def main() -> None:
-    webhook_url = os.environ.get("DISCORD_WEBHOOK_URL")
-    if not webhook_url:
-        logger.error("DISCORD_WEBHOOK_URL environment variable is not set")
-        sys.exit(1)
+    webhook_urls = _load_webhook_urls()
 
     last_run = load_last_run_timestamp()
     logger.info("Last run timestamp: %s", last_run or "(none)")
@@ -61,12 +95,17 @@ def main() -> None:
         return
 
     success_count = 0
+    total_attempts = 0
     for post in matched:
-        if send_notification(webhook_url, post):
-            success_count += 1
+        ok, attempts = send_notification(webhook_urls, post)
+        success_count += ok
+        total_attempts += attempts
 
     logger.info(
-        "Sent %d/%d notification(s)", success_count, len(matched)
+        "Sent %d/%d notification(s) across %d channel(s)",
+        success_count,
+        total_attempts,
+        len(webhook_urls),
     )
 
     save_last_run_timestamp(newest_published)

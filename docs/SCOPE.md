@@ -37,8 +37,12 @@
 
 ### [05] Discord Notification
 
-- When one or more posts match the keyword filter, the tool **must** send a notification to a Discord channel via a **Discord Webhook URL**.
-- The webhook URL **must** be stored as a GitHub Actions secret (e.g. `DISCORD_WEBHOOK_URL`) — never hard-coded.
+- When one or more posts match the keyword filter, the tool **must** send a notification to **one or more Discord channels** via **one or more Discord Webhook URLs**.
+- The webhook configuration **must** be stored as a GitHub Actions secret — never hard-coded.
+  - `DISCORD_WEBHOOK_URLS` (preferred): JSON array of webhook URLs; the same matched post is delivered to every URL.
+  - `DISCORD_WEBHOOK_URL` (legacy, single-channel fallback): used only when `DISCORD_WEBHOOK_URLS` is unset.
+- Per-webhook failures are isolated: a non-204 response or transport error on one channel does not block delivery to the remaining channels; each URL has its own 3-attempt retry loop.
+- Duplicate URLs in the list are deduplicated to prevent duplicate embeds.
 - Each notification **should** include:
   - Post title
   - Post URL/link

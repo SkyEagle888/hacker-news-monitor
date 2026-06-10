@@ -118,10 +118,7 @@ def _build_embed(post: dict[str, Any]) -> dict[str, Any]:
     return embed
 
 
-def send_notification(
-    webhook_url: str,
-    post: dict[str, Any],
-) -> bool:
+def _post_to_webhook(webhook_url: str, post: dict[str, Any]) -> bool:
     embed = _build_embed(post)
     payload = {"embeds": [embed]}
 
@@ -157,3 +154,19 @@ def send_notification(
         post.get("title", "Untitled"),
     )
     return False
+
+
+def send_notification(
+    webhook_urls: list[str],
+    post: dict[str, Any],
+) -> tuple[int, int]:
+    deduped_urls = list(dict.fromkeys(webhook_urls))
+    if not deduped_urls:
+        return (0, 0)
+
+    success_count = 0
+    for url in deduped_urls:
+        if _post_to_webhook(url, post):
+            success_count += 1
+
+    return (success_count, len(deduped_urls))

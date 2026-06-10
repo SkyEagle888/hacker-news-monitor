@@ -40,4 +40,5 @@
 - [ ] Verify Discord notification format and content
 - [ ] Verify deduplication works across consecutive runs
 - [ ] Confirm cron schedule fires correctly
+- [x] Support multiple Discord webhooks via `DISCORD_WEBHOOK_URLS` JSON array (back-compat with `DISCORD_WEBHOOK_URL`) → **[05]**
 - [ ] Final `docs/` review — mark all PLAN tasks as `[x]`
