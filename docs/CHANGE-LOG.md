@@ -2,7 +2,22 @@
 
 ## Session Summaries
 
-### 2026-06-10 | [Feature — Manual Test Notification]
+### 2026-06-18 | [Bug Fix — Suppress Empty-Body Notifications]
+
+- **Files**:
+  - `src/notifier.py` (added — `should_notify(post) -> bool` returns False when `post["summary"]` is missing, `None`, empty, or whitespace-only)
+  - `src/main.py` (updated — imports `should_notify`; after `filter_posts`, drops posts with empty summary and logs `Suppressed %d post(s) with empty summary`; exit path unified for both no-match and all-suppressed cases)
+  - `docs/CONTEXT-MAP.md` (updated — notifier + main rows reflect new helper and filter step)
+  - `docs/CHANGE-LOG.md` (this entry)
+- **Trigger**: observed Discord webhook delivery with title/url/color/footer present but blank description body when an RSS entry lacked `<description>`.
+- **Behavior**:
+  - Posts whose RSS summary is empty no longer generate Discord embeds.
+  - `last_run.txt` still advances to `newest_published` when all matches are suppressed, preserving dedup against the upstream window.
+  - Test notification unaffected (synthetic summary is non-empty).
+- **Validation**: `py_compile src/main.py src/notifier.py` ✅
+- **Risk**: Low | **Rollback**: revert `src/notifier.py` (drop `should_notify`) and `src/main.py` (drop filter block + import); behavior reverts to sending all matches.
+
+### 2026-06-10 | [Feature — Manual Test Notification] 
 
 - **Files**:
   - `.github/workflows/monitor.yml` (updated — `workflow_dispatch` now exposes `send_test` boolean input, default `false`; passed to run step as `SEND_TEST` env)

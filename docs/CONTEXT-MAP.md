@@ -13,10 +13,10 @@
 | `AGENTS.md` | Workflow rules, token budgets, AI directives | 2026-05-09 | ✅ |
 | `README.md` | Project description and setup instructions | 2026-05-09 | ✅ |
 | `src/__init__.py` | Package init | 2026-05-09 | ✅ |
-| `src/main.py` | Entry point: orchestrate fetch → filter → notify; resolves `DISCORD_WEBHOOK_URLS` (JSON array) with `DISCORD_WEBHOOK_URL` legacy fallback; honors `SEND_TEST` env to dispatch a synthetic test embed and exit | 2026-06-10 | ✅ |
+| `src/main.py` | Entry point: orchestrate fetch → filter → notify; resolves `DISCORD_WEBHOOK_URLS` (JSON array) with `DISCORD_WEBHOOK_URL` legacy fallback; honors `SEND_TEST` env to dispatch a synthetic test embed and exit; drops matched posts with empty summary via `should_notify` before notify | 2026-06-18 | ✅ |
 | `src/rss_client.py` | RSS feed fetching and parsing via feedparser | 2026-05-09 | ✅ |
 | `src/keyword_filter.py` | Keyword loading from CSV and case-insensitive matching | 2026-05-09 | ✅ |
-| `src/notifier.py` | Discord multi-webhook notification (`send_notification(urls, post) -> tuple[int,int]`; per-URL 3-retry loop via `_post_to_webhook`) | 2026-06-10 | ✅ |
+| `src/notifier.py` | Discord multi-webhook notification (`send_notification(urls, post) -> tuple[int,int]`; per-URL 3-retry loop via `_post_to_webhook`); `should_notify(post) -> bool` guards against empty-summary posts | 2026-06-18 | ✅ |
 | `keywords.csv` | Configurable keyword list (28 keywords) | 2026-05-09 | ✅ |
 | `requirements.txt` | Python dependencies (feedparser, httpx, python-dateutil) | 2026-05-09 | ✅ |
 | `.github/workflows/monitor.yml` | GitHub Actions workflow (cron + workflow_dispatch) | 2026-05-09 | ✅ |
@@ -24,10 +24,10 @@
 
 ## File Responsibilities
 
-- `src/main.py` — Loads last run timestamp, orchestrates RSS fetch → keyword filter → Discord notify, saves new timestamp; resolves webhook list from `DISCORD_WEBHOOK_URLS` (JSON array) with `DISCORD_WEBHOOK_URL` legacy fallback via `_load_webhook_urls()`; honors `SEND_TEST` env (truthy `true|1|yes`) to invoke `_send_test_notification()` and exit before RSS flow
+- `src/main.py` — Loads last run timestamp, orchestrates RSS fetch → keyword filter → Discord notify, saves new timestamp; resolves webhook list from `DISCORD_WEBHOOK_URLS` (JSON array) with `DISCORD_WEBHOOK_URL` legacy fallback via `_load_webhook_urls()`; honors `SEND_TEST` env (truthy `true|1|yes`) to invoke `_send_test_notification()` and exit before RSS flow; drops matched posts with empty/whitespace-only summary via `should_notify()` to avoid blank Discord embeds
 - `src/rss_client.py` — Fetches feed via `feedparser.parse()`, deduplicates by timestamp, returns list of post dicts
 - `src/keyword_filter.py` — Reads `keywords.csv` via `csv.DictReader`, matches against title+summary (lowercased)
-- `src/notifier.py` — Builds Discord embed payload with 5-tier severity color (Critical/High/Stack/Vendor/Internal + General fallback) via `KEYWORD_TIERS` + `_resolve_tier`; `send_notification(urls, post)` POSTs to each URL via `httpx` with 3 retries and 10s timeout; returns `(successes, total_attempts)`
+- `src/notifier.py` — Builds Discord embed payload with 5-tier severity color (Critical/High/Stack/Vendor/Internal + General fallback) via `KEYWORD_TIERS` + `_resolve_tier`; `send_notification(urls, post)` POSTs to each URL via `httpx` with 3 retries and 10s timeout; returns `(successes, total_attempts)`; `should_notify(post)` returns False when `summary` is missing/`None`/empty/whitespace-only
 - `keywords.csv` — Single-column CSV with header `keyword`; edit to add/remove keywords
 - `.github/workflows/monitor.yml` — Cron `0 */4 * * *`, `workflow_dispatch` with `send_test` boolean input, artifact-based timestamp persistence; exposes `DISCORD_WEBHOOK_URLS`, `DISCORD_WEBHOOK_URL`, and `SEND_TEST` env vars
 

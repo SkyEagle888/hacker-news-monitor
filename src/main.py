@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 
 from src.rss_client import fetch_feed
 from src.keyword_filter import load_keywords, filter_posts
-from src.notifier import send_notification
+from src.notifier import send_notification, should_notify
 
 logging.basicConfig(
     level=logging.INFO,
@@ -117,8 +117,15 @@ def main() -> None:
     matched = filter_posts(posts, keywords)
     logger.info("Matched %d post(s)", len(matched))
 
+    if matched:
+        notifiable = [p for p in matched if should_notify(p)]
+        skipped = len(matched) - len(notifiable)
+        if skipped:
+            logger.info("Suppressed %d post(s) with empty summary", skipped)
+        matched = notifiable
+
     if not matched:
-        logger.info("No matching posts found. Exiting.")
+        logger.info("No notifiable posts found. Exiting.")
         save_last_run_timestamp(newest_published)
         logger.info("Updated last run timestamp to: %s", newest_published)
         return

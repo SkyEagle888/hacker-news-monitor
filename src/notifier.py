@@ -76,6 +76,11 @@ def _truncate_words(text: str, max_words: int) -> str:
     return " ".join(words[:max_words]) + TRUNCATION_ELLIPSIS
 
 
+def should_notify(post: dict[str, Any]) -> bool:
+    summary = (post.get("summary") or "").strip()
+    return bool(summary)
+
+
 def _resolve_tier(matched_keywords: list[str]) -> str:
     tiers = {
         KEYWORD_TIERS[k.lower()]
